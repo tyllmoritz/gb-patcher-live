@@ -20,12 +20,30 @@
       </div>
 
       <div class="welcome-body">
+        <section class="panel game-select-panel">
+          <div class="game-select-row">
+            <label for="welcome-game-filter">Show</label>
+            <select id="welcome-game-filter">
+              <option value="all">All patches</option>
+              <option value="_SAVESTATES">Savestates only</option>
+              <option value="_BATTERYLESS">Batteryless only</option>
+            </select>
+          </div>
+          <div class="game-select-row">
+            <label for="welcome-game-select">Game</label>
+            <select id="welcome-game-select">
+              <option value="">Choose a game…</option>
+            </select>
+          </div>
+        </section>
+
         <section class="panel upload-panel">
           <div class="drop-zone" id="welcome-drop-zone">
             <div class="drop-icon">📂</div>
             <div>
-              <h3>Upload a ROM to patch</h3>
+              <h3 id="welcome-drop-zone-title">Upload a ROM to patch</h3>
               <p>Click or drag a .gb / .gbc / .bin file</p>
+              <p class="expected-md5" id="welcome-expected-md5" hidden></p>
             </div>
           </div>
           <input id="welcome_overlay_upload" type="file" accept=".gb,.gbc,.bin" hidden />
@@ -37,7 +55,7 @@
             <span class="overlay-hash" id="welcome-overlay-hash"></span>
           </div>
           <p id="welcome-overlay-build-row" hidden>
-            <label for="welcome-overlay-build-select">Build variant:</label>
+            <label for="welcome-overlay-build-select">Output:</label>
             <select id="welcome-overlay-build-select"></select>
           </p>
           <p><button id="welcome-overlay-remove" class="text-button">Remove overlay</button></p>
@@ -319,7 +337,7 @@
               <span class="overlay-hash" id="overlay-hash"></span>
             </div>
             <p id="overlay-build-row" hidden>
-              <label for="overlay-build-select">Build variant:</label>
+              <label for="overlay-build-select">Output:</label>
               <select id="overlay-build-select"></select>
             </p>
             <p><button id="overlay-remove">Remove overlay</button></p>

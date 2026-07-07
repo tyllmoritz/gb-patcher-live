@@ -584,6 +584,81 @@ export async function init(event) {
     return builds;
   }
 
+  var gameConfigIndex = Object.keys(storage.getFiles())
+    .filter(function (name) {
+      return name.startsWith('games/') && name.endsWith('.asm');
+    })
+    .map(function (path) {
+      var data = storage.getFiles()[path];
+      var m = typeof data === 'string' ? md5_line_regex.exec(data) : null;
+      var builds = parseBuildsLines(path);
+      var flags = builds.reduce(function (all, build) {
+        return all.concat(build.flags);
+      }, []);
+      return {
+        path: path,
+        displayName: path.slice('games/'.length).replace(/\.asm$/, ''),
+        hash: m ? m[1].toLowerCase() : null,
+        flags: flags,
+      };
+    })
+    .filter(function (entry) {
+      return entry.hash !== null;
+    })
+    .sort(function (a, b) {
+      return a.displayName.localeCompare(b.displayName);
+    });
+
+  function populateGameSelect(filter) {
+    var select = document.getElementById('welcome-game-select');
+    var selectedPath = select.value;
+    select.innerHTML = '';
+    var defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.textContent = 'Choose a game…';
+    select.appendChild(defaultOption);
+    gameConfigIndex
+      .filter(function (entry) {
+        return filter === 'all' || entry.flags.includes(filter);
+      })
+      .forEach(function (entry) {
+        var option = document.createElement('option');
+        option.value = entry.path;
+        option.textContent = entry.displayName;
+        select.appendChild(option);
+      });
+    select.value = Array.from(select.options).some(function (o) {
+      return o.value === selectedPath;
+    })
+      ? selectedPath
+      : '';
+  }
+
+  function applyGameSelection(path) {
+    var entry = gameConfigIndex.find(function (e) {
+      return e.path === path;
+    });
+    var title = document.getElementById('welcome-drop-zone-title');
+    var expectedMd5 = document.getElementById('welcome-expected-md5');
+    if (!entry) {
+      title.textContent = 'Upload a ROM to patch';
+      expectedMd5.hidden = true;
+      return;
+    }
+    title.textContent = 'Upload ' + entry.displayName;
+    expectedMd5.textContent = 'Expected MD5: ' + entry.hash;
+    expectedMd5.hidden = false;
+  }
+
+  document.getElementById('welcome-game-filter').onchange = function (e) {
+    populateGameSelect(e.target.value);
+    applyGameSelection(document.getElementById('welcome-game-select').value);
+  };
+  document.getElementById('welcome-game-select').onchange = function (e) {
+    applyGameSelection(e.target.value);
+  };
+  populateGameSelect('all');
+
   var overlayInfoIds = ['overlay-info', 'welcome-overlay-info'];
   var overlayFilenameIds = ['overlay-filename', 'welcome-overlay-filename'];
   var overlayHashIds = ['overlay-hash', 'welcome-overlay-hash'];
@@ -619,17 +694,19 @@ export async function init(event) {
       var row = document.getElementById(rowId);
       var select = document.getElementById(overlayBuildSelectIds[i]);
       select.innerHTML = '';
-      if (builds.length < 2) {
+      if (builds.length === 0) {
         row.hidden = true;
         return;
       }
       builds.forEach(function (build, index) {
+        var name = build.outputPath.split('/').pop();
         var option = document.createElement('option');
         option.value = index;
-        option.textContent = build.outputPath.split('/').pop() + ' (' + build.flags.join(' ') + ')';
+        option.textContent = builds.length > 1 ? name + ' (' + build.flags.join(' ') + ')' : name;
         if (index === selectedIndex) option.selected = true;
         select.appendChild(option);
       });
+      select.disabled = builds.length < 2;
       row.hidden = false;
     });
   }
