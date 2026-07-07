@@ -638,6 +638,56 @@ export async function init(event) {
     });
   }
 
+  function showApp() {
+    document.getElementById('app-container').classList.add('visible');
+    document.getElementById('back-menu-item').style.display = '';
+    document.getElementById('welcome').style.display = 'none';
+  }
+
+  function hideApp() {
+    document.getElementById('app-container').classList.remove('visible');
+    document.getElementById('back-menu-item').style.display = 'none';
+    document.getElementById('welcome').style.display = 'flex';
+  }
+
+  document.getElementById('debug-btn').onclick = function () {
+    showApp();
+  };
+  document.getElementById('back-btn').onclick = function (e) {
+    e.preventDefault();
+    hideApp();
+  };
+
+  var welcomeDropZone = document.getElementById('welcome-drop-zone');
+  var welcomeOverlayInput = document.getElementById('welcome_overlay_upload');
+
+  function handleWelcomeOverlayFile(file) {
+    if (!file) return;
+    handleOverlayFile(file);
+    showApp();
+    document.getElementById('uploadoverlaydialog').style.display = 'block';
+  }
+
+  welcomeDropZone.onclick = function () {
+    welcomeOverlayInput.click();
+  };
+  welcomeDropZone.ondragover = function (e) {
+    e.preventDefault();
+    welcomeDropZone.classList.add('drag-over');
+  };
+  welcomeDropZone.ondragleave = function () {
+    welcomeDropZone.classList.remove('drag-over');
+  };
+  welcomeDropZone.ondrop = function (e) {
+    e.preventDefault();
+    welcomeDropZone.classList.remove('drag-over');
+    handleWelcomeOverlayFile(e.dataTransfer.files[0]);
+  };
+  welcomeOverlayInput.onchange = function (e) {
+    handleWelcomeOverlayFile(e.target.files[0]);
+    e.target.value = '';
+  };
+
   document.getElementById('uploadoverlaymenu').onclick = function () {
     document.getElementById('uploadoverlaydialog').style.display = 'block';
   };

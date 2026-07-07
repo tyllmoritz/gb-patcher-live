@@ -13,10 +13,38 @@
   </head>
 
   <body>
+    <div id="welcome" class="welcome">
+      <div class="hero">
+        <h1>gb-patcher</h1>
+        <p class="hero-copy">Patch classic Game Boy ROMs, right in your browser</p>
+      </div>
+
+      <div class="welcome-body">
+        <section class="panel upload-panel">
+          <div class="drop-zone" id="welcome-drop-zone">
+            <div class="drop-icon">📂</div>
+            <div>
+              <h3>Upload a ROM to patch</h3>
+              <p>Click or drag a .gb / .gbc / .bin file</p>
+            </div>
+          </div>
+          <input id="welcome_overlay_upload" type="file" accept=".gb,.gbc,.bin" hidden />
+        </section>
+
+        <section class="action-bar">
+          <button id="debug-btn" class="debug-button">Open editor →</button>
+        </section>
+      </div>
+    </div>
+
+    <div id="app-container" class="app-container">
     <div class="container filelist-open">
       <div class="menubar">
         <ul>
           <li id="hamburger-container"><span class="hamburger">&#9776;</span></li>
+          <li id="back-menu-item" style="display: none">
+            <a href="#" id="back-btn">← Back</a>
+          </li>
           <li>
             File
             <ul>
@@ -374,6 +402,7 @@
           </div>
         </div>
       </div>
+    </div>
     </div>
   </body>
 </html>
