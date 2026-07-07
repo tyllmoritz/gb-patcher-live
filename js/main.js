@@ -609,7 +609,20 @@ export async function init(event) {
       return a.displayName.localeCompare(b.displayName);
     });
 
-  function populateGameSelect(filter) {
+  function truncateName(name, maxLen) {
+    return name.length > maxLen ? name.slice(0, maxLen - 1).trimEnd() + '…' : name;
+  }
+
+  var filterCheckboxes = [
+    document.getElementById('welcome-filter-savestates'),
+    document.getElementById('welcome-filter-batteryless'),
+  ];
+
+  function activeFilterFlags() {
+    return filterCheckboxes.filter((box) => box.checked).map((box) => box.value);
+  }
+
+  function populateGameSelect(activeFlags) {
     var select = document.getElementById('welcome-game-select');
     var selectedPath = select.value;
     select.innerHTML = '';
@@ -619,12 +632,13 @@ export async function init(event) {
     select.appendChild(defaultOption);
     gameConfigIndex
       .filter(function (entry) {
-        return filter === 'all' || entry.flags.includes(filter);
+        return activeFlags.length === 0 || activeFlags.some((flag) => entry.flags.includes(flag));
       })
       .forEach(function (entry) {
         var option = document.createElement('option');
         option.value = entry.path;
-        option.textContent = entry.displayName;
+        option.textContent = truncateName(entry.displayName, 55);
+        option.title = entry.displayName;
         select.appendChild(option);
       });
     select.value = Array.from(select.options).some(function (o) {
@@ -642,22 +656,26 @@ export async function init(event) {
     var expectedMd5 = document.getElementById('welcome-expected-md5');
     if (!entry) {
       title.textContent = 'Upload a ROM to patch';
+      title.title = '';
       expectedMd5.hidden = true;
       return;
     }
-    title.textContent = 'Upload ' + entry.displayName;
+    title.textContent = 'Upload ' + truncateName(entry.displayName, 45);
+    title.title = entry.displayName;
     expectedMd5.textContent = 'Expected MD5: ' + entry.hash;
     expectedMd5.hidden = false;
   }
 
-  document.getElementById('welcome-game-filter').onchange = function (e) {
-    populateGameSelect(e.target.value);
-    applyGameSelection(document.getElementById('welcome-game-select').value);
-  };
+  filterCheckboxes.forEach(function (box) {
+    box.onchange = function () {
+      populateGameSelect(activeFilterFlags());
+      applyGameSelection(document.getElementById('welcome-game-select').value);
+    };
+  });
   document.getElementById('welcome-game-select').onchange = function (e) {
     applyGameSelection(e.target.value);
   };
-  populateGameSelect('all');
+  populateGameSelect([]);
 
   var overlayInfoIds = ['overlay-info', 'welcome-overlay-info'];
   var overlayFilenameIds = ['overlay-filename', 'welcome-overlay-filename'];

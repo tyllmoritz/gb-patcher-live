@@ -21,13 +21,16 @@
 
       <div class="welcome-body">
         <section class="panel game-select-panel">
-          <div class="game-select-row">
-            <label for="welcome-game-filter">Show</label>
-            <select id="welcome-game-filter">
-              <option value="all">All patches</option>
-              <option value="_SAVESTATES">Savestates only</option>
-              <option value="_BATTERYLESS">Batteryless only</option>
-            </select>
+          <div class="game-select-row game-filter-row">
+            <span class="filter-label">Show</span>
+            <label class="filter-checkbox">
+              <input type="checkbox" id="welcome-filter-savestates" value="_SAVESTATES" />
+              Savestates
+            </label>
+            <label class="filter-checkbox">
+              <input type="checkbox" id="welcome-filter-batteryless" value="_BATTERYLESS" />
+              Batteryless
+            </label>
           </div>
           <div class="game-select-row">
             <label for="welcome-game-select">Game</label>

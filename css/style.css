@@ -451,15 +451,59 @@ canvas {
 
 .game-select-row select {
   flex: 1;
+  min-width: 0;
+  max-width: 100%;
   background: var(--gbp-bg3);
   color: var(--gbp-text);
   border: 1px solid var(--gbp-bg4);
   border-radius: 6px;
   padding: 6px 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.game-select-row select option {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.game-filter-row {
+  flex-wrap: wrap;
+}
+
+.filter-label {
+  flex: 0 0 auto;
+  color: var(--gbp-text2);
+  font-size: 13px;
+}
+
+.filter-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--gbp-text2);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.filter-checkbox input {
+  accent-color: var(--gbp-accent);
+  cursor: pointer;
 }
 
 .welcome .upload-panel {
   width: min(500px, 100%);
+}
+
+.welcome .drop-zone > div {
+  min-width: 0;
+}
+
+.welcome .drop-zone h3 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .expected-md5 {
