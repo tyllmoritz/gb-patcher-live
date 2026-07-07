@@ -24,12 +24,20 @@
           <div class="game-select-row game-filter-row">
             <span class="filter-label">Show</span>
             <label class="filter-checkbox">
-              <input type="checkbox" id="welcome-filter-savestates" value="_SAVESTATES" />
+              <input type="checkbox" id="welcome-filter-savestates" value="_SAVESTATES" checked />
               Savestates
             </label>
             <label class="filter-checkbox">
-              <input type="checkbox" id="welcome-filter-batteryless" value="_BATTERYLESS" />
+              <input type="checkbox" id="welcome-filter-batteryless" value="_BATTERYLESS" checked />
               Batteryless
+            </label>
+            <label class="filter-toggle">
+              <span class="filter-toggle-label" id="welcome-filter-mode-and">AND</span>
+              <span class="toggle-switch">
+                <input type="checkbox" id="welcome-filter-mode" checked />
+                <span class="toggle-slider"></span>
+              </span>
+              <span class="filter-toggle-label" id="welcome-filter-mode-or">OR</span>
             </label>
           </div>
           <div class="game-select-row">

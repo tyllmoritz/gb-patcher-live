@@ -492,6 +492,70 @@ canvas {
   cursor: pointer;
 }
 
+.filter-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  cursor: pointer;
+}
+
+.filter-toggle-label {
+  color: var(--gbp-text2);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: var(--gbp-transition);
+}
+
+.filter-toggle-label.active {
+  color: var(--gbp-text);
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 32px;
+  height: 18px;
+  flex: 0 0 auto;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  inset: 0;
+  background: var(--gbp-bg4);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: var(--gbp-transition);
+}
+
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  height: 14px;
+  width: 14px;
+  left: 2px;
+  top: 2px;
+  background: var(--gbp-text);
+  border-radius: 50%;
+  transition: var(--gbp-transition);
+}
+
+.toggle-switch input:checked ~ .toggle-slider {
+  background: var(--gbp-accent);
+}
+
+.toggle-switch input:checked ~ .toggle-slider::before {
+  transform: translateX(14px);
+  background: #fff;
+}
+
 .patch-list-label {
   margin-top: 4px;
   color: var(--gbp-text2);

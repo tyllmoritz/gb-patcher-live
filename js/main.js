@@ -625,12 +625,19 @@ export async function init(event) {
     document.getElementById('welcome-filter-savestates'),
     document.getElementById('welcome-filter-batteryless'),
   ];
+  var filterModeToggle = document.getElementById('welcome-filter-mode');
 
   function activeFilterFlags() {
     return filterCheckboxes.filter((box) => box.checked).map((box) => box.value);
   }
 
+  function updateFilterModeLabels() {
+    document.getElementById('welcome-filter-mode-and').classList.toggle('active', !filterModeToggle.checked);
+    document.getElementById('welcome-filter-mode-or').classList.toggle('active', filterModeToggle.checked);
+  }
+
   function populateGameSelect(activeFlags) {
+    var isOr = filterModeToggle.checked;
     var select = document.getElementById('welcome-game-select');
     var selectedPath = select.value;
     select.innerHTML = '';
@@ -640,7 +647,10 @@ export async function init(event) {
     select.appendChild(defaultOption);
     gameConfigIndex
       .filter(function (entry) {
-        return activeFlags.length === 0 || activeFlags.some((flag) => entry.flags.includes(flag));
+        if (activeFlags.length === 0) return true;
+        return isOr
+          ? activeFlags.some((flag) => entry.flags.includes(flag))
+          : activeFlags.every((flag) => entry.flags.includes(flag));
       })
       .forEach(function (entry) {
         var option = document.createElement('option');
@@ -699,10 +709,16 @@ export async function init(event) {
       applyGameSelection(document.getElementById('welcome-game-select').value);
     };
   });
+  filterModeToggle.onchange = function () {
+    updateFilterModeLabels();
+    populateGameSelect(activeFilterFlags());
+    applyGameSelection(document.getElementById('welcome-game-select').value);
+  };
   document.getElementById('welcome-game-select').onchange = function (e) {
     applyGameSelection(e.target.value);
   };
-  populateGameSelect([]);
+  updateFilterModeLabels();
+  populateGameSelect(activeFilterFlags());
 
   var overlayInfoIds = ['overlay-info', 'welcome-overlay-info'];
   var overlayFilenameIds = ['overlay-filename', 'welcome-overlay-filename'];
