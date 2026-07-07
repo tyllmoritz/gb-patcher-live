@@ -492,6 +492,46 @@ canvas {
   cursor: pointer;
 }
 
+.patch-list-label {
+  margin-top: 4px;
+  color: var(--gbp-text2);
+  font-size: 12px;
+}
+
+.patch-list {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.patch-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: var(--gbp-bg3);
+  color: var(--gbp-text);
+  font-size: 12px;
+  overflow: hidden;
+}
+
+.patch-list li .patch-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.patch-list li .patch-flags {
+  flex: 0 0 auto;
+  color: var(--gbp-text2);
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+  font-size: 11px;
+}
+
 .welcome .upload-panel {
   width: min(500px, 100%);
 }

@@ -600,6 +600,7 @@ export async function init(event) {
         displayName: path.slice('games/'.length).replace(/\.asm$/, ''),
         hash: m ? m[1].toLowerCase() : null,
         flags: flags,
+        builds: builds,
       };
     })
     .filter(function (entry) {
@@ -611,6 +612,13 @@ export async function init(event) {
 
   function truncateName(name, maxLen) {
     return name.length > maxLen ? name.slice(0, maxLen - 1).trimEnd() + '…' : name;
+  }
+
+  function truncateMiddle(name, maxLen) {
+    if (name.length <= maxLen) return name;
+    var headLen = Math.ceil((maxLen - 1) / 2);
+    var tailLen = Math.floor((maxLen - 1) / 2);
+    return name.slice(0, headLen).trimEnd() + '…' + name.slice(name.length - tailLen).trimStart();
   }
 
   var filterCheckboxes = [
@@ -654,16 +662,35 @@ export async function init(event) {
     });
     var title = document.getElementById('welcome-drop-zone-title');
     var expectedMd5 = document.getElementById('welcome-expected-md5');
+    var patchesWrap = document.getElementById('welcome-game-patches-wrap');
+    var patchesList = document.getElementById('welcome-game-patches');
     if (!entry) {
       title.textContent = 'Upload a ROM to patch';
       title.title = '';
       expectedMd5.hidden = true;
+      patchesWrap.hidden = true;
       return;
     }
     title.textContent = 'Upload ' + truncateName(entry.displayName, 45);
     title.title = entry.displayName;
     expectedMd5.textContent = 'Expected MD5: ' + entry.hash;
     expectedMd5.hidden = false;
+
+    patchesList.innerHTML = '';
+    entry.builds.forEach(function (build) {
+      var li = document.createElement('li');
+      var name = document.createElement('span');
+      name.className = 'patch-name';
+      name.textContent = truncateMiddle(build.outputPath.split('/').pop(), 40);
+      name.title = build.outputPath;
+      var flags = document.createElement('span');
+      flags.className = 'patch-flags';
+      flags.textContent = build.flags.join(' ');
+      li.appendChild(name);
+      li.appendChild(flags);
+      patchesList.appendChild(li);
+    });
+    patchesWrap.hidden = entry.builds.length === 0;
   }
 
   filterCheckboxes.forEach(function (box) {
@@ -757,6 +784,9 @@ export async function init(event) {
       showOverlayInfo(file.name, hash, gameConfig);
       updateFileList();
       compileCode();
+
+      document.getElementById('welcome-game-select').value = '';
+      applyGameSelection('');
     });
   }
 
