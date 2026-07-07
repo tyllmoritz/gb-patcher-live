@@ -4,6 +4,7 @@ import * as storage from './storage.js';
 import * as editors from './editors.js';
 import * as textEditor from './text-editor.js';
 import * as gfxEditor from './gfx-editor.js';
+import { md5 } from './md5.js';
 
 globalThis.emulator = emulator;
 
@@ -21,6 +22,7 @@ if (import.meta.env.DEV) {
 var cpu_line_marker = undefined;
 var start_address;
 var rom;
+var download_filename = null;
 var addr_to_line = {};
 var line_to_addr = {};
 var cpu_step_interval_id;
@@ -347,9 +349,11 @@ function showTabType(type) {
   });
 }
 
-export function init(event) {
+export async function init(event) {
   textEditor.register('textEditorDiv', compileCode);
   gfxEditor.register('gfxEditorDiv');
+
+  await storage.ready;
 
   var urlParams = new URLSearchParams(window.location.search);
   const asmOptions = (urlParams.get('asm') ?? '').trim();
@@ -428,9 +432,11 @@ export function init(event) {
   };
   document.getElementById('newproject').onclick = function () {
     if (!confirm('Are you sure to clear the current project?')) return;
-    storage.reset();
-    editors.setCurrentFile('main.asm');
-    updateFileList();
+    storage.reset().then(function () {
+      editors.setCurrentFile(Object.keys(storage.getFiles()).pop());
+      updateFileList();
+      compileCode();
+    });
   };
 
   compileCode();
@@ -540,7 +546,7 @@ export function init(event) {
     var element = document.createElement('a');
     var url = window.URL.createObjectURL(new Blob([rom.buffer], { type: 'application/octet-stream' }));
     element.setAttribute('href', url);
-    element.setAttribute('download', 'rom.gb');
+    element.setAttribute('download', download_filename || 'rom.gb');
 
     element.style.display = 'none';
     document.body.appendChild(element);
@@ -548,6 +554,138 @@ export function init(event) {
     document.body.removeChild(element);
     window.URL.revokeObjectURL(url);
   };
+
+  const md5_line_regex = /^;\s*md5\s+([0-9a-fA-F]{32})/m;
+  const builds_line_regex = /^;\s*builds\s+"([^"]+)"\s+with\s+(.+)$/gm;
+
+  function findGameConfig(hash) {
+    for (const [name, data] of Object.entries(storage.getFiles())) {
+      if (!name.startsWith('games/') || !name.endsWith('.asm')) continue;
+      if (typeof data !== 'string') continue;
+      var m = md5_line_regex.exec(data);
+      if (m && m[1].toLowerCase() === hash) return name;
+    }
+    return null;
+  }
+
+  function parseBuildsLines(gameConfig) {
+    var data = storage.getFiles()[gameConfig];
+    if (typeof data !== 'string') return [];
+    var builds = [];
+    var m;
+    builds_line_regex.lastIndex = 0;
+    while ((m = builds_line_regex.exec(data))) {
+      builds.push({ outputPath: m[1], flags: m[2].trim().split(/\s+/) });
+    }
+    return builds;
+  }
+
+  function showOverlayInfo(name, hash, gameConfig) {
+    document.getElementById('overlay-filename').textContent = name;
+    document.getElementById('overlay-hash').textContent = gameConfig
+      ? 'MD5: ' + hash + ' — matched ' + gameConfig
+      : 'MD5: ' + hash + ' — no matching game config found';
+    document.getElementById('overlay-info').hidden = false;
+  }
+
+  var current_game_config = null;
+  var current_builds = [];
+
+  function populateBuildSelect(builds, selectedIndex) {
+    var row = document.getElementById('overlay-build-row');
+    var select = document.getElementById('overlay-build-select');
+    select.innerHTML = '';
+    if (builds.length < 2) {
+      row.hidden = true;
+      return;
+    }
+    builds.forEach(function (build, index) {
+      var option = document.createElement('option');
+      option.value = index;
+      option.textContent = build.outputPath.split('/').pop() + ' (' + build.flags.join(' ') + ')';
+      if (index === selectedIndex) option.selected = true;
+      select.appendChild(option);
+    });
+    row.hidden = false;
+  }
+
+  function applyGameConfig(gameConfig, buildIndex) {
+    current_game_config = gameConfig;
+    current_builds = gameConfig ? parseBuildsLines(gameConfig) : [];
+    var index = buildIndex ?? 0;
+    var build = current_builds[index] || null;
+    compiler.setGameConfig(gameConfig, build ? build.flags : null);
+    download_filename = build ? build.outputPath.split('/').pop() : null;
+    populateBuildSelect(current_builds, index);
+  }
+
+  document.getElementById('overlay-build-select').onchange = function (e) {
+    applyGameConfig(current_game_config, parseInt(e.target.value, 10));
+    compileCode();
+  };
+
+  function handleOverlayFile(file) {
+    if (!file) return;
+    file.arrayBuffer().then(function (buffer) {
+      var data = new Uint8Array(buffer);
+      var hash = md5(data);
+      var gameConfig = findGameConfig(hash);
+      storage.update('overlay.gb', data);
+      applyGameConfig(gameConfig, 0);
+      showOverlayInfo(file.name, hash, gameConfig);
+      updateFileList();
+      compileCode();
+    });
+  }
+
+  document.getElementById('uploadoverlaymenu').onclick = function () {
+    document.getElementById('uploadoverlaydialog').style.display = 'block';
+  };
+  document.getElementById('uploadoverlaydialog').onclick = function (e) {
+    if (e.target == document.getElementById('uploadoverlaydialog'))
+      document.getElementById('uploadoverlaydialog').style.display = 'none';
+  };
+  document.getElementById('uploadoverlaydialogclose').onclick = function () {
+    document.getElementById('uploadoverlaydialog').style.display = 'none';
+  };
+
+  var overlayDropZone = document.getElementById('overlay-drop-zone');
+  var overlayInput = document.getElementById('overlay_upload');
+
+  overlayDropZone.onclick = function () {
+    overlayInput.click();
+  };
+  overlayDropZone.ondragover = function (e) {
+    e.preventDefault();
+    overlayDropZone.classList.add('drag-over');
+  };
+  overlayDropZone.ondragleave = function () {
+    overlayDropZone.classList.remove('drag-over');
+  };
+  overlayDropZone.ondrop = function (e) {
+    e.preventDefault();
+    overlayDropZone.classList.remove('drag-over');
+    handleOverlayFile(e.dataTransfer.files[0]);
+  };
+  overlayInput.onchange = function (e) {
+    handleOverlayFile(e.target.files[0]);
+    e.target.value = '';
+  };
+  document.getElementById('overlay-remove').onclick = function () {
+    storage.update('overlay.gb', null);
+    applyGameConfig(null);
+    document.getElementById('overlay-info').hidden = true;
+    updateFileList();
+    compileCode();
+  };
+
+  if ('overlay.gb' in storage.getFiles()) {
+    var existingOverlay = storage.getFiles()['overlay.gb'];
+    var existingHash = md5(existingOverlay);
+    var existingGameConfig = findGameConfig(existingHash);
+    applyGameConfig(existingGameConfig);
+    showOverlayInfo('overlay.gb', existingHash, existingGameConfig);
+  }
 
   document.getElementById('importmenu').onclick = function () {
     document.getElementById('importdialog').style.display = 'block';

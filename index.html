@@ -22,6 +22,7 @@
             <ul>
               <li id="newfile">New file...</li>
               <li id="delfile">Delete current file</li>
+              <li id="uploadoverlaymenu">Upload overlay...</li>
               <li id="importmenu">Import project...</li>
               <li id="exportmenu">Export project...</li>
               <li id="newproject">New project...</li>
@@ -241,6 +242,34 @@
               <p>Load a file from your local harddisk</p>
               <p><input type="file" id="newfile_upload" multiple /></p>
             </div>
+          </div>
+        </div>
+      </div>
+      <div id="uploadoverlaydialog" class="modal">
+        <div class="content">
+          <span id="uploadoverlaydialogclose" class="close"></span>
+          <p>
+            Upload a ROM to use as the rgblink <code>-O</code> overlay. Building will patch this ROM in place instead
+            of producing a fresh one.
+          </p>
+          <div class="drop-zone" id="overlay-drop-zone">
+            <div class="drop-icon">📂</div>
+            <div>
+              <h3>Upload overlay ROM</h3>
+              <p>Click or drag a .gb / .gbc / .bin file</p>
+            </div>
+          </div>
+          <input id="overlay_upload" type="file" accept=".gb,.gbc,.bin" hidden />
+          <div id="overlay-info" class="overlay-info" hidden>
+            <div class="overlay-info-row">
+              <span class="overlay-name" id="overlay-filename"></span>
+              <span class="overlay-hash" id="overlay-hash"></span>
+            </div>
+            <p id="overlay-build-row" hidden>
+              <label for="overlay-build-select">Build variant:</label>
+              <select id="overlay-build-select"></select>
+            </p>
+            <p><button id="overlay-remove">Remove overlay</button></p>
           </div>
         </div>
       </div>

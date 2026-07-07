@@ -15,10 +15,28 @@ var ram_symbols = [];
 var asm_options = [];
 var fix_options = [];
 var link_options = [];
+var game_config_options = [];
 
 var last_error_type = 'error';
 var last_error_message = '';
 var line_nr_regex = /([\w\.]+)[\w\.\:~]*\(([0-9]+)\)/gi;
+
+function writeFile(FS, path, data) {
+  var dir = path.split('/').slice(0, -1).join('/');
+  if (dir) {
+    var parts = dir.split('/');
+    var current = '';
+    for (const part of parts) {
+      current += '/' + part;
+      try {
+        FS.mkdir(current);
+      } catch {
+        // directory already exists
+      }
+    }
+  }
+  FS.writeFile(path, data);
+}
 
 function logFunction(str, kind) {
   if (log_callback) log_callback(str, kind);
@@ -108,6 +126,10 @@ export function setFixOptions(options) {
   fix_options = options;
 }
 
+export function setGameConfig(path, flags) {
+  game_config_options = path ? ['-DGAME_CONFIG=' + path, ...(flags || []).map((flag) => '-D' + flag)] : [];
+}
+
 function trigger() {
   if (typeof start_delay_timer != 'undefined') clearTimeout(start_delay_timer);
   start_delay_timer = setTimeout(startCompile, 500);
@@ -122,22 +144,26 @@ function startCompile() {
   ram_symbols = [];
 
   var targets = [];
-  for (const name of Object.keys(storage.getFiles())) {
-    if (name.endsWith('.asm')) targets.push(name);
+  if ('src/main.asm' in storage.getFiles()) {
+    targets.push('src/main.asm');
+  } else {
+    for (const name of Object.keys(storage.getFiles())) {
+      if (name.endsWith('.asm')) targets.push(name);
+    }
   }
   runRgbAsm(targets, {});
 }
 
 function runRgbAsm(targets, obj_files) {
   var target = targets.pop();
-  var args = ['-Wall', ...asm_options, '--color', 'never', '-o', 'output.o', '--', target];
+  var args = ['-Wall', ...asm_options, ...game_config_options, '--color', 'never', '-o', 'output.o', '--', target];
   infoFunction('Running: rgbasm ' + args.join(' '));
   createRgbAsm({
     arguments: args,
     preRun: function (m) {
       var FS = m.FS;
       for (const [key, value] of Object.entries(storage.getFiles())) {
-        FS.writeFile(key, value);
+        writeFile(FS, key, value);
       }
     },
     print: outFunction,
@@ -161,7 +187,10 @@ function runRgbAsm(targets, obj_files) {
 }
 
 function runRgbLink(obj_files) {
-  var args = ['--color', 'never', '-o', 'output.gb', ...link_options, '-m', 'output.map', '--'];
+  var overlay_file = !link_options.includes('-O') && 'overlay.gb' in storage.getFiles() ? 'overlay.gb' : null;
+  var args = ['--color', 'never', '-o', 'output.gb', ...link_options];
+  if (overlay_file) args.push('-O', overlay_file);
+  args.push('-m', 'output.map', '--');
   for (var name in obj_files) {
     args.push(name + '.o');
   }
@@ -170,7 +199,8 @@ function runRgbLink(obj_files) {
     arguments: args,
     preRun: function (m) {
       var FS = m.FS;
-      for (var name in obj_files) FS.writeFile(name + '.o', obj_files[name]);
+      for (var name in obj_files) writeFile(FS, name + '.o', obj_files[name]);
+      if (overlay_file) writeFile(FS, overlay_file, storage.getFiles()[overlay_file]);
     },
     print: outFunction,
     printErr: errFunction,

@@ -6,7 +6,7 @@ import * as main from './main.js';
 
 import HARDWARE_INC from '../hardware.inc/hardware.inc?raw';
 import HARDWARE_COMPAT_INC from '../hardware.inc/hardware_compat.inc?raw';
-import MAIN_ASM from '../starting_project/main.asm?raw';
+import STARTING_PROJECT_ZIP_URL from '../gb-patch-framework.zip?url';
 
 export const config = {
   autoUrl: false,
@@ -15,14 +15,30 @@ export const config = {
 
 let files;
 
-reset();
+export const ready = reset();
 
 export function reset() {
-  files = {
-    'hardware.inc': HARDWARE_INC,
-    'hardware_compat.inc': HARDWARE_COMPAT_INC,
-    'main.asm': MAIN_ASM,
-  };
+  files = getHardwareFiles();
+  return fetch(STARTING_PROJECT_ZIP_URL)
+    .then(function (response) {
+      return response.arrayBuffer();
+    })
+    .then(function (buffer) {
+      return JSZip.loadAsync(buffer);
+    })
+    .then(function (zip) {
+      var promises = [];
+      zip.forEach(function (relativePath, entry) {
+        if (entry.dir) return;
+        var type = editors.getFileType(entry.name) == 'text' ? 'string' : 'uint8array';
+        promises.push(
+          entry.async(type).then(function (contents) {
+            files[entry.name] = contents;
+          }),
+        );
+      });
+      return Promise.all(promises);
+    });
 }
 
 function getHardwareFiles() {
