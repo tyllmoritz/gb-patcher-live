@@ -370,30 +370,51 @@ canvas {
 }
 
 .welcome {
+  --gbp-bg: #0d0f1a;
+  --gbp-bg2: #151829;
+  --gbp-bg3: #1c2039;
+  --gbp-bg4: #252a4a;
+  --gbp-accent: #7c5cfc;
+  --gbp-accent2: #5e8cfc;
+  --gbp-accent-glow: rgba(124, 92, 252, 0.25);
+  --gbp-text: #e2e8f0;
+  --gbp-text2: #94a3b8;
+  --gbp-radius: 12px;
+  --gbp-radius-sm: 8px;
+  --gbp-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  --gbp-transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
   position: fixed;
   inset: 0;
   display: flex;
   flex-direction: column;
-  background: var(--background);
+  background: radial-gradient(ellipse at top, var(--gbp-accent-glow), transparent 34rem), var(--gbp-bg);
+  color: var(--gbp-text);
   z-index: 1000;
   overflow-y: auto;
 }
 
 .hero {
   text-align: center;
-  padding: 48px 16px 24px;
+  padding: 56px 16px 24px;
 }
 
 .hero h1 {
   margin: 0;
-  font-size: clamp(28px, 5vw, 48px);
+  background: linear-gradient(135deg, var(--gbp-accent), var(--gbp-accent2));
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-size: clamp(32px, 6vw, 56px);
   font-weight: 800;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
 }
 
 .hero-copy {
-  margin-top: 8px;
-  color: var(--log-info);
+  margin-top: 10px;
+  font-size: 16px;
+  color: var(--gbp-text2);
 }
 
 .welcome-body {
@@ -402,11 +423,71 @@ canvas {
   flex-direction: column;
   align-items: center;
   padding: 16px;
-  gap: 24px;
+  gap: 20px;
 }
 
-.upload-panel {
+.welcome .upload-panel {
   width: min(500px, 100%);
+}
+
+.welcome .drop-zone {
+  gap: 16px;
+  padding: 40px 24px;
+  border: 2px dashed var(--gbp-bg4);
+  border-radius: var(--gbp-radius);
+  background: linear-gradient(145deg, var(--gbp-bg2), var(--gbp-bg3));
+  transition: var(--gbp-transition);
+}
+
+.welcome .drop-zone:hover,
+.welcome .drop-zone.drag-over {
+  border-color: var(--gbp-accent);
+  background: linear-gradient(145deg, var(--gbp-bg2), var(--gbp-bg3));
+  transform: translateY(-2px);
+}
+
+.welcome .drop-zone .drop-icon {
+  font-size: 40px;
+  opacity: 0.8;
+}
+
+.welcome .drop-zone h3 {
+  color: var(--gbp-text);
+  font-size: 17px;
+}
+
+.welcome .drop-zone p {
+  color: var(--gbp-text2);
+}
+
+.welcome .overlay-info {
+  width: min(500px, 100%);
+  margin-top: 0;
+  padding: 16px;
+  border: 1px solid var(--gbp-bg4);
+  border-radius: var(--gbp-radius-sm);
+  background: var(--gbp-bg2);
+  color: var(--gbp-text);
+}
+
+.welcome .overlay-hash {
+  color: var(--gbp-text2);
+}
+
+.welcome .overlay-info select {
+  background: var(--gbp-bg3);
+  color: var(--gbp-text);
+  border-color: var(--gbp-bg4);
+}
+
+.text-button {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: var(--gbp-accent2);
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 12px;
 }
 
 .action-bar {
@@ -417,18 +498,69 @@ canvas {
   width: min(500px, 100%);
 }
 
-.debug-button {
-  padding: 12px 32px;
+.primary-button,
+.secondary-button {
+  padding: 12px 28px;
   font-size: 15px;
-  font-weight: 600;
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  background: var(--background-alt);
-  color: var(--color);
+  font-weight: 700;
+  border-radius: var(--gbp-radius);
+  transition: var(--gbp-transition);
 }
 
-.debug-button:hover {
-  background: var(--selectedfile-background);
+.primary-button {
+  border: 0;
+  background: linear-gradient(135deg, var(--gbp-accent), var(--gbp-accent2));
+  color: #fff;
+  box-shadow: 0 4px 20px var(--gbp-accent-glow);
+}
+
+.primary-button:not(:disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px var(--gbp-accent-glow);
+}
+
+.primary-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.secondary-button {
+  border: 1px solid var(--gbp-bg4);
+  background: transparent;
+  color: var(--gbp-accent2);
+}
+
+.secondary-button:hover {
+  background: var(--gbp-bg3);
+  border-color: var(--gbp-accent2);
+  transform: translateY(-2px);
+}
+
+.welcome-footer {
+  text-align: center;
+  padding: 24px 16px 32px;
+  font-size: 12px;
+  color: var(--gbp-text2);
+}
+
+.welcome-footer a {
+  color: var(--gbp-accent2);
+  text-decoration: none;
+}
+
+.welcome-footer a:hover {
+  text-decoration: underline;
+}
+
+.footer-sep {
+  margin: 0 8px;
+}
+
+@media only screen and (max-width: 600px) {
+  .action-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }
 
 .app-container {

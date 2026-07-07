@@ -31,10 +31,35 @@
           <input id="welcome_overlay_upload" type="file" accept=".gb,.gbc,.bin" hidden />
         </section>
 
+        <div id="welcome-overlay-info" class="overlay-info panel" hidden>
+          <div class="overlay-info-row">
+            <span class="overlay-name" id="welcome-overlay-filename"></span>
+            <span class="overlay-hash" id="welcome-overlay-hash"></span>
+          </div>
+          <p id="welcome-overlay-build-row" hidden>
+            <label for="welcome-overlay-build-select">Build variant:</label>
+            <select id="welcome-overlay-build-select"></select>
+          </p>
+          <p><button id="welcome-overlay-remove" class="text-button">Remove overlay</button></p>
+        </div>
+
         <section class="action-bar">
-          <button id="debug-btn" class="debug-button">Open editor →</button>
+          <button id="welcome-download-btn" class="primary-button" disabled>⬇ Download patched ROM</button>
+          <button id="debug-btn" class="secondary-button">Open editor →</button>
         </section>
       </div>
+
+      <footer class="welcome-footer">
+        <a href="https://github.com/gbdev/rgbds-live" target="_blank">View on GitHub</a>
+        <span class="footer-sep">·</span>
+        <span>
+          Built with
+          <a href="https://github.com/gbdev/rgbds-live" target="_blank">rgbds-live</a>,
+          <a href="https://github.com/gbdev/rgbds" target="_blank">rgbds</a>,
+          <a href="https://github.com/binji/binjgb" target="_blank">binjgb</a> and
+          <a href="https://github.com/tyllmoritz/gb-patch-framework" target="_blank">gb-patch-framework</a>
+        </span>
+      </footer>
     </div>
 
     <div id="app-container" class="app-container">

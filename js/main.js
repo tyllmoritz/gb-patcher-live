@@ -74,6 +74,7 @@ export function compileCode() {
 
     var pc_line;
     destroyEmulator();
+    document.getElementById('welcome-download-btn').disabled = typeof _rom_file == 'undefined';
     if (typeof _rom_file == 'undefined') {
       return;
     }
@@ -541,7 +542,7 @@ export async function init(event) {
     updateTextView();
   };
 
-  document.getElementById('download_rom').onclick = function () {
+  function downloadRom() {
     if (typeof rom == 'undefined') return;
     var element = document.createElement('a');
     var url = window.URL.createObjectURL(new Blob([rom.buffer], { type: 'application/octet-stream' }));
@@ -553,7 +554,10 @@ export async function init(event) {
     element.click();
     document.body.removeChild(element);
     window.URL.revokeObjectURL(url);
-  };
+  }
+
+  document.getElementById('download_rom').onclick = downloadRom;
+  document.getElementById('welcome-download-btn').onclick = downloadRom;
 
   const md5_line_regex = /^;\s*md5\s+([0-9a-fA-F]{32})/m;
   const builds_line_regex = /^;\s*builds\s+"([^"]+)"\s+with\s+(.+)$/gm;
@@ -580,33 +584,54 @@ export async function init(event) {
     return builds;
   }
 
+  var overlayInfoIds = ['overlay-info', 'welcome-overlay-info'];
+  var overlayFilenameIds = ['overlay-filename', 'welcome-overlay-filename'];
+  var overlayHashIds = ['overlay-hash', 'welcome-overlay-hash'];
+  var overlayBuildRowIds = ['overlay-build-row', 'welcome-overlay-build-row'];
+  var overlayBuildSelectIds = ['overlay-build-select', 'welcome-overlay-build-select'];
+
   function showOverlayInfo(name, hash, gameConfig) {
-    document.getElementById('overlay-filename').textContent = name;
-    document.getElementById('overlay-hash').textContent = gameConfig
+    var text = gameConfig
       ? 'MD5: ' + hash + ' — matched ' + gameConfig
       : 'MD5: ' + hash + ' — no matching game config found';
-    document.getElementById('overlay-info').hidden = false;
+    overlayFilenameIds.forEach(function (id) {
+      document.getElementById(id).textContent = name;
+    });
+    overlayHashIds.forEach(function (id) {
+      document.getElementById(id).textContent = text;
+    });
+    overlayInfoIds.forEach(function (id) {
+      document.getElementById(id).hidden = false;
+    });
+  }
+
+  function hideOverlayInfo() {
+    overlayInfoIds.forEach(function (id) {
+      document.getElementById(id).hidden = true;
+    });
   }
 
   var current_game_config = null;
   var current_builds = [];
 
   function populateBuildSelect(builds, selectedIndex) {
-    var row = document.getElementById('overlay-build-row');
-    var select = document.getElementById('overlay-build-select');
-    select.innerHTML = '';
-    if (builds.length < 2) {
-      row.hidden = true;
-      return;
-    }
-    builds.forEach(function (build, index) {
-      var option = document.createElement('option');
-      option.value = index;
-      option.textContent = build.outputPath.split('/').pop() + ' (' + build.flags.join(' ') + ')';
-      if (index === selectedIndex) option.selected = true;
-      select.appendChild(option);
+    overlayBuildRowIds.forEach(function (rowId, i) {
+      var row = document.getElementById(rowId);
+      var select = document.getElementById(overlayBuildSelectIds[i]);
+      select.innerHTML = '';
+      if (builds.length < 2) {
+        row.hidden = true;
+        return;
+      }
+      builds.forEach(function (build, index) {
+        var option = document.createElement('option');
+        option.value = index;
+        option.textContent = build.outputPath.split('/').pop() + ' (' + build.flags.join(' ') + ')';
+        if (index === selectedIndex) option.selected = true;
+        select.appendChild(option);
+      });
+      row.hidden = false;
     });
-    row.hidden = false;
   }
 
   function applyGameConfig(gameConfig, buildIndex) {
@@ -619,10 +644,12 @@ export async function init(event) {
     populateBuildSelect(current_builds, index);
   }
 
-  document.getElementById('overlay-build-select').onchange = function (e) {
-    applyGameConfig(current_game_config, parseInt(e.target.value, 10));
-    compileCode();
-  };
+  overlayBuildSelectIds.forEach(function (id) {
+    document.getElementById(id).onchange = function (e) {
+      applyGameConfig(current_game_config, parseInt(e.target.value, 10));
+      compileCode();
+    };
+  });
 
   function handleOverlayFile(file) {
     if (!file) return;
@@ -661,13 +688,6 @@ export async function init(event) {
   var welcomeDropZone = document.getElementById('welcome-drop-zone');
   var welcomeOverlayInput = document.getElementById('welcome_overlay_upload');
 
-  function handleWelcomeOverlayFile(file) {
-    if (!file) return;
-    handleOverlayFile(file);
-    showApp();
-    document.getElementById('uploadoverlaydialog').style.display = 'block';
-  }
-
   welcomeDropZone.onclick = function () {
     welcomeOverlayInput.click();
   };
@@ -681,11 +701,18 @@ export async function init(event) {
   welcomeDropZone.ondrop = function (e) {
     e.preventDefault();
     welcomeDropZone.classList.remove('drag-over');
-    handleWelcomeOverlayFile(e.dataTransfer.files[0]);
+    handleOverlayFile(e.dataTransfer.files[0]);
   };
   welcomeOverlayInput.onchange = function (e) {
-    handleWelcomeOverlayFile(e.target.files[0]);
+    handleOverlayFile(e.target.files[0]);
     e.target.value = '';
+  };
+  document.getElementById('welcome-overlay-remove').onclick = function () {
+    storage.update('overlay.gb', null);
+    applyGameConfig(null);
+    hideOverlayInfo();
+    updateFileList();
+    compileCode();
   };
 
   document.getElementById('uploadoverlaymenu').onclick = function () {
@@ -724,7 +751,7 @@ export async function init(event) {
   document.getElementById('overlay-remove').onclick = function () {
     storage.update('overlay.gb', null);
     applyGameConfig(null);
-    document.getElementById('overlay-info').hidden = true;
+    hideOverlayInfo();
     updateFileList();
     compileCode();
   };
