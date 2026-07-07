@@ -625,6 +625,7 @@ export async function init(event) {
     document.getElementById('welcome-filter-savestates'),
     document.getElementById('welcome-filter-batteryless'),
   ];
+  var knownFilterFlags = filterCheckboxes.map((box) => box.value);
   var filterModeToggle = document.getElementById('welcome-filter-mode');
 
   function activeFilterFlags() {
@@ -647,7 +648,11 @@ export async function init(event) {
     select.appendChild(defaultOption);
     gameConfigIndex
       .filter(function (entry) {
-        if (activeFlags.length === 0) return true;
+        if (activeFlags.length === 0) {
+          // Neither known category is checked: only surface games offering something
+          // beyond plain savestates/batteryless (e.g. streaming, debug, RTC patches).
+          return entry.flags.some((flag) => !knownFilterFlags.includes(flag));
+        }
         return isOr
           ? activeFlags.some((flag) => entry.flags.includes(flag))
           : activeFlags.every((flag) => entry.flags.includes(flag));
