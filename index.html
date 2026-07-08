@@ -1,0 +1,466 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="google" content="notranslate" />
+
+    <script type="module" crossorigin src="./assets/index-BCFNiM49.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-Q1Wy0ed5.css">
+  </head>
+
+  <body>
+    <div id="welcome" class="welcome">
+      <div class="hero">
+        <h1>gb-patcher</h1>
+        <p class="hero-copy">Patch classic Game Boy ROMs, right in your browser</p>
+      </div>
+
+      <div class="welcome-body">
+        <section class="panel game-select-panel">
+          <div class="game-select-row game-filter-row">
+            <span class="filter-label">Show</span>
+            <label class="filter-checkbox">
+              <input type="checkbox" id="welcome-filter-savestates" value="_SAVESTATES" checked />
+              Savestates
+            </label>
+            <label class="filter-checkbox">
+              <input type="checkbox" id="welcome-filter-batteryless" value="_BATTERYLESS" checked />
+              Batteryless
+            </label>
+            <label class="filter-toggle">
+              <span class="filter-toggle-label" id="welcome-filter-mode-and">AND</span>
+              <span class="toggle-switch">
+                <input type="checkbox" id="welcome-filter-mode" checked />
+                <span class="toggle-slider"></span>
+              </span>
+              <span class="filter-toggle-label" id="welcome-filter-mode-or">OR</span>
+            </label>
+          </div>
+          <div class="game-select-row">
+            <label for="welcome-game-select">Game</label>
+            <select id="welcome-game-select">
+              <option value="">Choose a game…</option>
+            </select>
+          </div>
+          <div id="welcome-game-patches-wrap" hidden>
+            <p class="patch-list-label">Available patches:</p>
+            <ul id="welcome-game-patches" class="patch-list"></ul>
+          </div>
+        </section>
+
+        <section class="panel upload-panel">
+          <div class="drop-zone" id="welcome-drop-zone">
+            <div class="drop-icon">📂</div>
+            <div>
+              <h3 id="welcome-drop-zone-title">Upload a ROM to patch</h3>
+              <p>Click or drag a .gb / .gbc / .bin file</p>
+              <p class="expected-md5" id="welcome-expected-md5" hidden></p>
+            </div>
+          </div>
+          <input id="welcome_overlay_upload" type="file" accept=".gb,.gbc,.bin" hidden />
+        </section>
+
+        <div id="welcome-overlay-info" class="overlay-info panel" hidden>
+          <div class="overlay-info-row">
+            <span class="overlay-name" id="welcome-overlay-filename"></span>
+            <span class="overlay-hash" id="welcome-overlay-hash"></span>
+          </div>
+          <p id="welcome-overlay-build-row" hidden>
+            <label for="welcome-overlay-build-select">Output:</label>
+            <select id="welcome-overlay-build-select"></select>
+          </p>
+          <p><button id="welcome-overlay-remove" class="text-button">Remove overlay</button></p>
+        </div>
+
+        <section class="action-bar">
+          <button id="welcome-download-btn" class="primary-button" disabled>⬇ Download patched ROM</button>
+          <button id="debug-btn" class="secondary-button">Open editor →</button>
+        </section>
+      </div>
+
+      <footer class="welcome-footer">
+        <a href="https://github.com/tyllmoritz/gb-patcher-live" target="_blank">View on GitHub</a>
+        <span class="footer-sep">·</span>
+        <span>
+          Built with
+          <a href="https://github.com/gbdev/rgbds-live" target="_blank">rgbds-live</a>,
+          <a href="https://github.com/gbdev/rgbds" target="_blank">rgbds</a>,
+          <a href="https://github.com/binji/binjgb" target="_blank">binjgb</a> and
+          <a href="https://github.com/tyllmoritz/gb-patch-framework" target="_blank">gb-patch-framework</a>
+        </span>
+      </footer>
+    </div>
+
+    <div id="app-container" class="app-container">
+    <div class="container filelist-open">
+      <div class="menubar">
+        <ul>
+          <li id="hamburger-container"><span class="hamburger">&#9776;</span></li>
+          <li id="back-menu-item" style="display: none">
+            <a href="#" id="back-btn">← Back</a>
+          </li>
+          <li>
+            File
+            <ul>
+              <li id="newfile">New file...</li>
+              <li id="delfile">Delete current file</li>
+              <li id="uploadoverlaymenu">Upload overlay...</li>
+              <li id="importmenu">Import project...</li>
+              <li id="exportmenu">Export project...</li>
+              <li id="newproject">New project...</li>
+            </ul>
+          </li>
+          <li>
+            Options
+            <ul>
+              <li>
+                <label>
+                  <input type="checkbox" id="auto_url_update" />
+                  Auto URL update
+                </label>
+              </li>
+              <li>
+                <label>
+                  <input type="checkbox" id="auto_local_storage_update" />
+                  Store data between sessions
+                </label>
+              </li>
+              <li>
+                <label>
+                  <input type="checkbox" id="view_enable_autocomplete" />
+                  Enable autocomplete
+                </label>
+              </li>
+              <li id="settingsmenu">Settings...</li>
+            </ul>
+          </li>
+          <li>
+            View
+            <ul>
+              <li>
+                  Font size:
+                  <button id="view_font_decrease" class="fontsize-btn" title="Decrease (Ctrl+-)">−</button>
+                  <span id="view_font_size_display">14</span>px
+                  <button id="view_font_increase" class="fontsize-btn" title="Increase (Ctrl+=)">+</button>
+              </li>
+            </ul>
+          </li>
+          <li>
+            About
+            <ul>
+              <li id="infomenu">Info...</li>
+              <li>
+                <!-- This link is templated using the VITE_RGBDS_VERSION env variable, set at build time. See vite.config.js -->
+                <a href="https://rgbds.gbdev.io/docs/v1.0.1
+" target="_blank">rgbds manual</a>
+              </li>
+              <li>
+                <a href="https://github.com/tyllmoritz/gb-patcher-live/issues" target="_blank">Report a problem</a>
+              </li>
+              <li>
+                Source:
+                <br />
+                <a href="https://github.com/tyllmoritz/gb-patcher-live" target="_blank"
+                  >https://github.com/tyllmoritz/gb-patcher-live</a
+                >
+              </li>
+              <li>Uses:</li>
+              <li>
+                <a href="https://github.com/gbdev/rgbds/" target="_blank">rgbds</a>: Rednex Game Boy Development System
+                <br />
+                (MIT License, Copyright © 1997-2024, Carsten Sørensen and RGBDS contributors)
+              </li>
+              <li>
+                <a href="https://github.com/binji/binjgb" target="_blank">binjgb</a>: Game Boy Emulator
+                <br />
+                (MIT License, Copyright © 2016, Ben Smith)
+              </li>
+              <li>
+                <a href="https://ace.c9.io/" target="_blank">Ace</a>: High performance code editor for web
+                <br />
+                (BSD License, Copyright © 2010, Ajax.org B.V.)
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+      <div class="sidebar" style="position: relative">
+        <div class="filelist">
+          <ul id="filelist"></ul>
+        </div>
+      </div>
+      <div class="editor" id="textEditorDiv" style="display: none"></div>
+      <div class="editor" id="gfxEditorDiv">
+        <canvas id="gfxEditorDrawCanvas" width="8" height="8" style="width: 256px"></canvas>
+        <canvas id="gfxEditorPalette" width="16" height="64" style="width: 32px; margin-left: 2px"></canvas>
+        <div style="overflow: auto">
+          <canvas id="gfxEditorTilesCanvas"></canvas>
+        </div>
+      </div>
+      <div class="editor" id="nullEditorDiv">Cannot edit selected file.</div>
+      <div class="emulator">
+        <table>
+          <tr>
+            <td>
+              <div class="tabs">
+                <input type="radio" name="emulator_display_mode" id="emulator_display_screen" checked />
+                <label for="emulator_display_screen">Screen</label>
+                <input type="radio" name="emulator_display_mode" id="emulator_display_vram" />
+                <label for="emulator_display_vram">VRAM</label>
+                <input type="radio" name="emulator_display_mode" id="emulator_display_bg0" />
+                <label for="emulator_display_bg0">BG0</label>
+                <input type="radio" name="emulator_display_mode" id="emulator_display_bg1" />
+                <label for="emulator_display_bg1">BG1</label>
+                <input type="radio" name="emulator_display_mode" id="emulator_display_rom" />
+                <label for="emulator_display_rom">ROM</label>
+                <input type="radio" name="emulator_display_mode" id="emulator_display_wram" />
+                <label for="emulator_display_wram">WRAM</label>
+                <input type="radio" name="emulator_display_mode" id="emulator_display_hram" />
+                <label for="emulator_display_hram">HRAM</label>
+                <input type="radio" name="emulator_display_mode" id="emulator_display_io" />
+                <label for="emulator_display_io">I/O</label>
+                <input type="radio" name="emulator_display_mode" id="emulator_display_serial" />
+                <label for="emulator_display_serial">Serial</label>
+              </div>
+              <div class="emulator_screen_container" id="emulator_screen_container">
+                <canvas class="emulator_canvas_screen" id="emulator_screen_canvas" width="160" height="144"></canvas>
+                <canvas
+                  class="emulator_vram_screen"
+                  id="emulator_vram_canvas"
+                  width="256"
+                  height="256"
+                  style="display: none"
+                ></canvas>
+                <pre
+                  style="height: 100%; width: 100%; display: none; overflow: scroll"
+                  id="emulator_display_text"
+                ></pre>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <button id="download_rom">Download</button>
+              <button id="cpu_single_step">Step</button>
+              <button id="cpu_frame_step">Frame</button>
+              <label style="padding: 4px 16px">
+                <input id="cpu_run_check" type="checkbox" />
+                Run
+              </label>
+              <button id="cpu_reset">Reset</button>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <table class="data_table" style="width: 50%">
+                <colgroup>
+                  <col />
+                  <col style="width: 50%" />
+                  <col />
+                  <col style="width: 50%" />
+                </colgroup>
+                <tr>
+                  <th class="right">PC:</th>
+                  <td id="cpu_pc">-</td>
+                  <th class="right">A:</th>
+                  <td id="cpu_a">-</td>
+                </tr>
+                <tr>
+                  <th class="right">SP:</th>
+                  <td id="cpu_sp">-</td>
+                  <th class="right">BC:</th>
+                  <td id="cpu_bc">-</td>
+                </tr>
+                <tr>
+                  <th class="right">Flags:</th>
+                  <td id="cpu_flags">-</td>
+                  <th class="right">DE:</th>
+                  <td id="cpu_de">-</td>
+                </tr>
+                <tr>
+                  <th class="right">Serial:</th>
+                  <td id="serial_log">-</td>
+                  <th class="right">HL:</th>
+                  <td id="cpu_hl">-</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div class="console">
+        <pre id="output" class="output" readonly></pre>
+      </div>
+
+      <div id="infodialog" class="modal">
+        <div class="content">
+          <span id="infodialogclose" class="close"></span>
+          <p>
+            rgbds-live is a Game Boy programming environment allowing for real-time assembly programming for the Game
+            Boy.
+          </p>
+          <p>
+            The environment runs 100% in your browser. Your source code does not leave your browser, unless you export
+            it.
+          </p>
+          <p>
+            It is powered by the excellent binjgb emulator, the Ace source code editor, and the rgbds assembler/linker
+            compiled for WebAssembly.
+          </p>
+        </div>
+      </div>
+
+      <div id="newfiledialog" class="modal">
+        <div class="content">
+          <span id="newfiledialogclose" class="close"></span>
+          <div class="tabs">
+            <input type="radio" name="newfile_mode" id="newfile_mode_empty" checked />
+            <label for="newfile_mode_empty">Empty file</label>
+            <div>
+              <p>Create a new empty file.</p>
+              <p>Name: <input type="text" id="newfile_name" /></p>
+              <p><button id="newfile_empty_create">Create</button></p>
+            </div>
+            <input type="radio" name="newfile_mode" id="newfile_mode_upload" />
+            <label for="newfile_mode_upload">Existing file</label>
+            <div>
+              <p>Load a file from your local harddisk</p>
+              <p><input type="file" id="newfile_upload" multiple /></p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="uploadoverlaydialog" class="modal">
+        <div class="content">
+          <span id="uploadoverlaydialogclose" class="close"></span>
+          <p>
+            Upload a ROM to use as the rgblink <code>-O</code> overlay. Building will patch this ROM in place instead
+            of producing a fresh one.
+          </p>
+          <div class="drop-zone" id="overlay-drop-zone">
+            <div class="drop-icon">📂</div>
+            <div>
+              <h3>Upload overlay ROM</h3>
+              <p>Click or drag a .gb / .gbc / .bin file</p>
+            </div>
+          </div>
+          <input id="overlay_upload" type="file" accept=".gb,.gbc,.bin" hidden />
+          <div id="overlay-info" class="overlay-info" hidden>
+            <div class="overlay-info-row">
+              <span class="overlay-name" id="overlay-filename"></span>
+              <span class="overlay-hash" id="overlay-hash"></span>
+            </div>
+            <p id="overlay-build-row" hidden>
+              <label for="overlay-build-select">Output:</label>
+              <select id="overlay-build-select"></select>
+            </p>
+            <p><button id="overlay-remove">Remove overlay</button></p>
+          </div>
+        </div>
+      </div>
+      <div id="importdialog" class="modal">
+        <div class="content">
+          <span id="importdialogclose" class="close"></span>
+          <div class="tabs">
+            <input type="radio" name="import_mode" id="import_mode_gist" checked />
+            <label for="import_mode_gist">GitHub Gist</label>
+            <div>
+              <p>Import code from a GitHub Gist:</p>
+              <p>Gist URL: <input type="text" id="import_gist_url" /></p>
+              <p><button id="import_gist">Import</button></p>
+            </div>
+            <input type="radio" name="import_mode" id="import_mode_github" />
+            <label for="import_mode_github">GitHub</label>
+            <div>
+              <p>At some point in the future you will be able to directly import GitHub repositories here.</p>
+            </div>
+            <input type="radio" name="import_mode" id="import_mode_upload" />
+            <label for="import_mode_upload">Load .zip</label>
+            <div>
+              <p>Load a zip file:</p>
+              <p><input type="file" id="import_zipfile" /></p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="exportdialog" class="modal">
+        <div class="content">
+          <span id="exportdialogclose" class="close"></span>
+          <div class="tabs">
+            <input type="radio" name="export_mode" id="export_mode_url" checked />
+            <label for="export_mode_url">URL</label>
+            <div>
+              <p>Export the project as URL. Only suitable for small projects.</p>
+              <p>
+                <input type="text" id="export_hash_url" style="width: 100%" onClick="this.select();" readonly />
+              </p>
+            </div>
+            <input type="radio" name="export_mode" id="export_mode_gist" />
+            <label for="export_mode_gist">GitHub Gist</label>
+            <div>
+              <p>Export the code as a new GitHub Gist, or update an existing Gist with new code.</p>
+              <p>Github username: <input type="text" id="export_gist_username" /></p>
+              <p>
+                Github personal access token:
+                <input type="text" id="export_gist_token" autocomplete="off" />
+                (<a
+                  href="https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token"
+                  target="_blank"
+                  >info</a
+                >)
+              </p>
+              <p>Gist URL: <input type="text" id="export_gist_url" /> (leave empty for new gist)</p>
+              <p><button id="export_gist">Save</button></p>
+              <p>
+                <input type="text" id="export_gist_import_url" style="width: 100%" onClick="this.select();" readonly />
+              </p>
+            </div>
+            <input type="radio" name="export_mode" id="export_mode_github" />
+            <label for="export_mode_github">GitHub</label>
+            <div>
+              <p>At some point in the future you will be able to save your code to a GitHub repository here.</p>
+            </div>
+            <input type="radio" name="export_mode" id="export_mode_download" />
+            <label for="export_mode_download">Download</label>
+            <div>
+              <p>Download your project as a zip archive.</p>
+              <p><button id="export_zip">Save</button></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="settingsdialog" class="modal">
+        <div class="content">
+          <span id="settingsdialogclose" class="close"></span>
+          <div class="tabs">
+            <input type="radio" name="settings_mode" id="settings_mode_compiler" checked />
+            <label for="settings_mode_compiler">Compiler</label>
+            <div class="noborder">
+              <p>Additional options for</p>
+              <table>
+                <tr>
+                  <td><label for="compiler_settings_asm">RGBASM:</label></td>
+                  <td class="fill"><input type="text" class="fill" id="compiler_settings_asm" /></td>
+                </tr>
+                <tr>
+                  <td><label for="compiler_settings_link">RGBLINK:</label></td>
+                  <td class="fill"><input type="text" class="fill" id="compiler_settings_link" /></td>
+                </tr>
+                <tr>
+                  <td><label for="compiler_settings_fix">RGBFIX:</label></td>
+                  <td class="fill"><input type="text" class="fill" id="compiler_settings_fix" /></td>
+                </tr>
+                <tr>
+                  <td colspan="2" class="right"><button id="compiler_settings_set">Set</button></td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+  </body>
+</html>
